@@ -82,4 +82,5 @@ services:
 
 + [ ] Set up DKIM
 + [ ] Logging is to stdout, should it be to a log file with rotation?
++ [ ] How to maintain aliases and other database files?
 ...

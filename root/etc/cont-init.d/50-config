@@ -123,6 +123,9 @@ postconf -e maillog_file=/dev/stdout
 
 test -n "${BOUNCE_QUEUE_LIFETIME}" && postconf -e bounce_queue_lifetime="${BOUNCE_QUEUE_LIFETIME}"
 
+# Create the aliases database
+postalias lmdb:/etc/postfix/aliases
+
 # Read additional config info from /config/postconf
 if [ -f /config/postconf ]; then
     while read -r user type; do
