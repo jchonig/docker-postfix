@@ -1,0 +1,10 @@
+**/#*
+**/*~
+**/.#*
+.dockerignore
+.git
+.gitignore
+MANIFEST.in
+Makefile
+config
+

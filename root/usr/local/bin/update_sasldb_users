@@ -1,0 +1,54 @@
+#!/bin/bash
+
+progname=$(basename ${0})
+
+fail () {
+    echo "${progname}: ${*}" >&2
+    exit 1
+}
+
+verbose () {
+    echo "${progname}: ${*}"
+}
+
+for file in /config/sasl.users; do
+    test -f ${file} || fail "${file} is missing"
+done
+
+declare -A sasldb_users
+
+if [ -f /etc/sasl2/sasldb2 ]; then
+    while read -r user type; do
+	test "${type}" != "userPassword" && continue
+	if [[ $user =~ ([^@]+)@([^:]+): ]]; then
+	    sasldb_users[${BASH_REMATCH[1]}@${BASH_REMATCH[2]}]=1
+	else
+	    fail "Unexpected line from sasdblistusers2: ${user}"
+	fi
+    done <<< $(sasldblistusers2)
+fi
+
+mydomain=$(postconf -h myhostname)
+
+while read -r user password; do
+    test -z "${user}" -o -z "${password}" && continue
+    if [ -n "${sasldb_users[${user}@${mydomain}]}" ]; then
+	verbose "Updating ${user}@${mydomain}"
+    else
+	verbose "Adding ${user}@${mydomain}"
+    fi
+    echo "${password}" | saslpasswd2 -p -c -u "${mydomain}" "${user}"
+    unset sasldb_users[${user}@${mydomain}]
+done </config/sasl.users
+
+for key in "${!sasldb_users[@]}"; do
+    if [[ $key =~ ([^@]+)@(.+) ]]; then
+	user=${BASH_REMATCH[1]}
+	domain=${BASH_REMATCH[2]}
+    fi
+    verbose "Removing ${user}@${domain}"
+    saslpasswd2 -d -u "${domain}" "${user}"
+done
+
+exit 0
+
