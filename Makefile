@@ -4,7 +4,6 @@ VOLUMES= \
     -v ${PWD}/config:/config
 ENV= \
     -e USE_SASL=yes \
-    -e USE_SASLAUTHD=yes \
     -e USE_TLS=yes \
     -e MYHOSTNAME=home.honig.net \
     -e MYORIGIN=honig.net \
@@ -23,7 +22,7 @@ run: build
 	docker run ${VOLUMES} ${ENV} ${PORTS} -it ${IMAGE}:${TAG}
 
 sasl_users: build
-	docker run ${VOLUMES} ${ENV} ${PORTS} -it ${IMAGE}:${TAG} sasl_users
+	docker run ${VOLUMES} ${ENV} ${PORTS} -it ${IMAGE}:${TAG} update_sasldb_users
 
 # Run the container with just a bash shell
 run-bash: build

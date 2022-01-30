@@ -1,9 +1,8 @@
-From lsiobase/alpine:3.13
+From lsiobase/alpine:3.15
 
 ENV \
 	USE_SASL= \
-	# Works around an sasldb bug in Alpine 3.13 \
-        USE_SASLAUTHD=yes \
+        USE_SASLAUTHD=no \
 	USE_DKIM= \
 	USE_TLS= \
 	MYHOSTNAME= \

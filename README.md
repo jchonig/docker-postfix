@@ -75,7 +75,6 @@ services:
 + When USE_TLS is enabled, /config/server.cert and /config/server.key should must exist
 + When using SASL, /config/sasl.users should should have one entry 	per line of user and password seperated by a space
 + When using SASL, run *update_sasldb_users when that file is updated
-+ When using SASL, a bug in Alpine 3.13 requires USE_SASLAUTHD=yes
 + Additonal postfix configuration can be stored in /config/postconf as arguments to the postconf command
 
 ## TODO
