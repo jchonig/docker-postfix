@@ -29,6 +29,7 @@ fi
 
 # 
 MAIL_CONFIG=/etc/postfix
+SPOOL_DIR=/data/spool
 
 #
 #	Switch from abc to postfix
@@ -36,27 +37,27 @@ MAIL_CONFIG=/etc/postfix
 PUID=${PUID:-$(id -u abc)}
 PGID=${PGID:-$(id -g abc)}
 
-DIRS="/var/spool/postfix /config/spool ${MAIL_CONFIG}"
+DIRS="/var/spool/postfix ${SPOOL_DIR} ${MAIL_CONFIG}"
 find ${DIRS} -user postfix -exec chown ${PUID} \{\} \;
 find ${DIRS} -group postfix -exec chgrp ${PGID} \{\} \;
 
 userdel abc
 
 groupmod -o -g "$PGID" postfix
-usermod -o -u "$PUID" -d /config/spool postfix
+usermod -o -u "$PUID" -d ${SPOOL_DIR} postfix
 
 chown postfix:postfix /app
 chown postfix:postfix /config
 chown postfix:postfix /defaults
 
 # Copy over the spool direcotry if it does not exist
-if [ ! -d /config/spool ]; then
-    mkdir /config/spool
-    rsync -a /var/spool/postfix/ /config/spool
+if [ ! -d ${SPOOL_DIR} ]; then
+    mkdir -p ${SPOOL_DIR}
+    rsync -a /var/spool/postfix/ ${SPOOL_DIR}
 fi
 
 # Set the queue directory
-postconf -e queue_directory=/config/spool
+postconf -e queue_directory=${SPOOL_DIR}
 
 postconf -e myhostname="${MYHOSTNAME}"
 postconf -e myorigin="${MYORIGIN}"

@@ -34,9 +34,13 @@ services:
       - PGID=1000
     volumes:
       - </path/to/appdata/config>:/config
+	  - data:/data
     port:
       - 25
     restart: unless-stopped
+
+volumes:
+  data:
 ```
 
 # Parameters
@@ -66,22 +70,22 @@ services:
 
 ## Volume Mappings (-v)
 
-| Volume        | Function                                     |
-|---------------|----------------------------------------------|
-| /config       | All the config files reside here             |
-| /config/spool | The mail spool directory (could be a volume) |
+| Volume  | Function                           |
+|---------|------------------------------------|
+| /data   | Persistent data (i.e. /data/spool) |
+| /config | All the config files reside here   |
 
 
 # Application Setup
 
-+ When USE_TLS is enabled, /config/server.cert and /config/server.key
-  should exist
-  + When these files are updated, postfix is reloaded
++ When USE_TLS is enabled, /config/server.cert and /config/server.key should exist
+  + When these files are updated, postfix is reloaded automatically
 + When using SASL, /config/sasl.users should should have one entry per line of user and password seperated by a space
-  + WHen this file is updated, *update_sasldb_users* is run
+  + WHen this file is updated, *update_sasldb_users* is run automatically
 + Additonal postfix configuration can be stored in /config/postconf and /config/postconf.d/*
   + These files contain arguments to the postconf command
-  + These files are processed when the container starts and when the are created or modified
+  + These files are processed when the container starts
+  + These files are reparsed automatically when they are modified or created
   + The files in /config/postconf.d are not processed in a particular order
 + Aliases are stored in /config/aliases
   + If this file does not exists the default postfix file is copied to it

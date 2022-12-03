@@ -11,7 +11,7 @@ process_postconf () {
     done < "${file}"
 }
 
-inotifywait -m -r /config -e attrib,modify,move,create,delete --exclude /config/spool | \
+inotifywait -m -r /config -e attrib,modify,move,create,delete | \
     while read -r watched_filename event_names event_filename; do
 	event_path="${watched_filename}${event_filename}"
 	echo "--- ${watched_filename} ${event_names} ${event_filename}: ${event_path} ---" >&2
