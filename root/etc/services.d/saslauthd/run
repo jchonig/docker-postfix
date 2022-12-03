@@ -1,4 +1,0 @@
-#!/usr/bin/with-contenv bash
-
-exec /usr/sbin/saslauthd -a sasldb -d
-

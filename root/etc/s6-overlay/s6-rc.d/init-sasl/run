@@ -1,0 +1,51 @@
+#!/usr/bin/with-contenv bash
+
+print_vars () {
+    if [ -n "${1}" ]; then
+	title=" ${1}"
+    else
+	title=""
+    fi
+    echo "Environment${title}:"
+    echo "    USE_SASL=${USE_SASL}"
+    echo "    USE_SASLAUTHD=${USE_SASLAUTHD}"
+    echo "    TZ=${TZ}"
+}
+
+print_vars init-saslauthd
+
+# load env file if it exists
+if [ -f "/config/env" ]; then
+  source /config/env
+  print_vars "After sourcing /config/env"
+fi
+
+case ${USE_SASL} in
+    yes|true)
+	postconf -e smtpd_sasl_auth_enable=yes
+	postconf -e broken_sasl_auth_clients=yes
+	postconf -e smtpd_recipient_restrictions=permit_sasl_authenticated,reject_unauth_destination
+	postconf -e smtpd_relay_restrictions=permit_sasl_authenticated,reject
+	# mydomain needs to be set properly before this runs
+	test -d /etc/sasl2 || mkdir -p /etc/sasl2
+	update_sasldb_users
+	chown postfix:postfix /etc/sasl2/sasldb2
+	case ${USE_SASLAUTHD} in
+	    yes|true)
+		cat > /etc/sasl2/smtpd.conf <<EOF
+pwcheck_method: saslauthd
+mech_list: PLAIN LOGIN CRAM-MD5 DIGEST-MD5 NTLM
+EOF
+	    ;;
+	    *)
+		cat > /etc/sasl2/smtpd.conf <<EOF
+pwcheck_method: auxprop
+auxprop_plugin: sasldb
+mech_list: PLAIN LOGIN CRAM-MD5 DIGEST-MD5 NTLM
+EOF
+		;;
+	esac
+	;;
+esac
+
+echo "Finished init-saslauthd"

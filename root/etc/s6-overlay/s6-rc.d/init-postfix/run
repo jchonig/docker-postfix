@@ -9,9 +9,6 @@ print_vars () {
     echo "Environment${title}:"
     echo "    PUID=${PUID}"
     echo "    PGID=${PGID}"
-    echo "    USE_SASL=${USE_SASL}"
-    echo "    USE_SASLAUTHD=${USE_SASLAUTHD}"
-    echo "    USE_DKIM=${USE_DKIM}"
     echo "    USE_TLS=${USE_TLS}"
     echo "    MYHOSTNAME=${MYHOSTNAME}"
     echo "    MYORIGIN=${MYORIGIN}"
@@ -20,18 +17,15 @@ print_vars () {
     echo "    MASQUERADE_DOMAINS=${MASQUERADE_DOMAINS}"
     echo "    SMTPD_TLS_SECURITY_LEVEL=${SMTPD_TLS_SECURITY_LEVEL}"
     echo "    TZ=${TZ}"
-    for var in "${!MMONIT_@}"; do
-	printf '    %s=%s\n' "$var" "${!var}"
-    done    
 }
+
+print_vars init-postfix
 
 # load env file if it exists
 if [ -f "/config/env" ]; then
   source /config/env
   print_vars "After sourcing /config/env"
 fi
-
-print_vars
 
 # 
 MAIL_CONFIG=/etc/postfix
@@ -73,47 +67,16 @@ if [ -n "${MASQUERADE_DOMAINS}" ]; then
     postconf -e masquerade_classes=envelope_sender,envelope_recipient,header_sender,header_recipient
 fi
 	       
-case ${USE_SASL} in
-    yes|true)
-	postconf -e smtpd_sasl_auth_enable=yes
-	postconf -e broken_sasl_auth_clients=yes
-	postconf -e smtpd_recipient_restrictions=permit_sasl_authenticated,reject_unauth_destination
-	postconf -e smtpd_relay_restrictions=permit_sasl_authenticated,reject
-	# mydomain needs to be set properly before this runs
-	update_sasldb_users
-	chown postfix.postfix /etc/sasl2/sasldb2
-	case ${USE_SASLAUTHD} in
-	    yes|true)
-		cat > /etc/sasl2/smtpd.conf <<EOF
-pwcheck_method: saslauthd
-mech_list: PLAIN LOGIN CRAM-MD5 DIGEST-MD5 NTLM
-EOF
-	    ;;
-	    *)
-		rm -rf /etc/services.d/saslauthd
-		;;
-	esac
-	;;
-esac
-
-case ${USE_DKIM} in
-    yes|true)
-	true
-	;;
-    *)
-	rm -rf /etc/services.d/opendkim
-	;;
-esac
-
 case ${USE_TLS} in
     yes|true)
-	set -x
-	postconf -e smtpd_tls_security_level=encrypt
 	postconf -e smtpd_tls_CAfile=/etc/ssl/certs/ca-certificates.crt
 	postconf -e smtpd_tls_cert_file=/config/server.cert
 	postconf -e smtpd_tls_key_file=/config/server.key
-	test -n "${SMTPD_TLS_SECURITY_LEVEL}" && postconf -e smtpd_tls_security_level=${SMTPD_TLS_SECURITY_LEVEL}
-	set +x
+	if [ -n "${SMTPD_TLS_SECURITY_LEVEL}" ]; then
+	    postconf -e smtpd_tls_security_level=${SMTPD_TLS_SECURITY_LEVEL}
+	else
+	    postconf -e smtpd_tls_security_level=encrypt
+	fi
     ;;
 esac
 
@@ -121,17 +84,29 @@ esac
 postconf -e maillog_file=/dev/stdout
 #postconf -F '*/*/chroot = n'
 
+# Configure aliases
+test -f /config/aliases || cp -p ${MAIL_CONFIG}/aliases /config/aliases
+postconf alias_maps=hash:/config/aliases
+postalias lmdb:${MAIL_CONFIG}/aliases
+
 test -n "${BOUNCE_QUEUE_LIFETIME}" && postconf -e bounce_queue_lifetime="${BOUNCE_QUEUE_LIFETIME}"
 
-# Create the aliases database
-postalias lmdb:/etc/postfix/aliases
+process_postconf () {
+    local file=$1
+    local line
+    echo "Reprocessing ${file}"
+    while read -r line; do
+	echo "	${line}"
+	postconf ${line}
+    done < "${file}"
+}
 
 # Read additional config info from /config/postconf
-if [ -f /config/postconf ]; then
-    while read -r user type; do
-	postconf ${line}
-    done < /config/postconf
-fi
+for file in /config/postconf /config/postconf.d/*; do
+    test -f "${file}" && process_postconf ${file}
+done
 
 # Set permissions on everything
 /usr/sbin/postfix set-permissions
+
+echo "Finished init-postfix"

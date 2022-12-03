@@ -1,0 +1,11 @@
+#!/usr/bin/with-contenv bash
+
+case ${USE_SASLAUTHD} in
+    yes|true)
+	exec /usr/sbin/saslauthd -a sasldb -d
+	;;
+    *)
+	;;
+esac
+
+

@@ -1,0 +1,30 @@
+#!/usr/bin/with-contenv bash
+
+print_vars () {
+    if [ -n "${1}" ]; then
+	title=" ${1}"
+    else
+	title=""
+    fi
+    echo "Environment${title}:"
+    echo "    USE_DKIM=${USE_DKIM}"
+}
+
+print_vars init-opendkim
+
+# load env file if it exists
+if [ -f "/config/env" ]; then
+  source /config/env
+  print_vars "After sourcing /config/env"
+fi
+
+case ${USE_DKIM} in
+    yes|true)
+	true
+	# Config and setup opendkim
+	;;
+    *)
+	;;
+esac
+
+echo "Finished init-opendkim"

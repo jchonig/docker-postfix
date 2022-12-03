@@ -1,0 +1,46 @@
+#!/usr/bin/with-contenv bash
+
+process_postconf () {
+    local file=$1
+    local line
+
+    echo "Reprocessing ${file}"
+    while read -r line; do
+	echo "	${line}"
+	postconf ${line}
+    done < "${file}"
+}
+
+inotifywait -m -r /config -e attrib,modify,move,create,delete --exclude /config/spool | \
+    while read -r watched_filename event_names event_filename; do
+	event_path="${watched_filename}${event_filename}"
+	echo "--- ${watched_filename} ${event_names} ${event_filename}: ${event_path} ---" >&2
+	case "${event_path}" in
+	    /config/aliases)
+		newaliases
+		;;
+	    /config/postconf|/config/postconf.d/*)
+		test -f "${event_path}" && process_postconf "${event_path}"
+		;;
+	    /config/sasl.users)
+		case ${USE_SASL} in
+		    yes|true)
+			update_sasldb_users
+			;;
+		    *)
+			echo "Not updating sasldb with USE_SASL=${USE_SASL}"
+			;;
+		esac
+		;;
+	    /config/server.cert|/config/server.key)
+		case ${USE_TLS} in
+		    yes|true)
+			postfix reload
+			;;
+		    *)
+			echo "Not reloading postfix with USE_TLS=${USE_TLS}"
+			;;
+		esac
+		;;
+	esac
+    done

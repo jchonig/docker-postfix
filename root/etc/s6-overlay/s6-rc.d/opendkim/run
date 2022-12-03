@@ -1,0 +1,10 @@
+#!/usr/bin/with-contenv bash
+
+case ${USE_DKIM} in
+    yes|true)
+	exec /usr/sbin/opendkim -f
+	;;
+    *)
+	;;
+esac
+

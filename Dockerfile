@@ -1,4 +1,4 @@
-From lsiobase/alpine:3.15
+From lsiobase/alpine:3.16
 
 ENV \
 	USE_SASL= \
@@ -17,8 +17,15 @@ COPY root /
 
 # Set up
 RUN \
-	echo "*** Install required packages ****" && \
-	apk add --no-cache postfix cyrus-sasl rsync opendkim opendkim-utils ca-certificates
+    echo "*** Install required packages ****" && \
+    apk add --no-cache postfix \
+        postfix-doc \
+        cyrus-sasl \
+        rsync \
+        opendkim \
+        opendkim-utils \
+        inotify-tools \
+        ca-certificates
 
 EXPOSE 25
 

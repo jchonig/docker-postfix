@@ -66,20 +66,29 @@ services:
 
 ## Volume Mappings (-v)
 
-| Volume  | Function                         |
-| ------  | --------                         |
-| /config | All the config files reside here |
+| Volume        | Function                                     |
+|---------------|----------------------------------------------|
+| /config       | All the config files reside here             |
+| /config/spool | The mail spool directory (could be a volume) |
+
 
 # Application Setup
 
-+ When USE_TLS is enabled, /config/server.cert and /config/server.key should must exist
-+ When using SASL, /config/sasl.users should should have one entry 	per line of user and password seperated by a space
-+ When using SASL, run *update_sasldb_users when that file is updated
-+ Additonal postfix configuration can be stored in /config/postconf as arguments to the postconf command
++ When USE_TLS is enabled, /config/server.cert and /config/server.key
+  should exist
+  + When these files are updated, postfix is reloaded
++ When using SASL, /config/sasl.users should should have one entry per line of user and password seperated by a space
+  + WHen this file is updated, *update_sasldb_users* is run
++ Additonal postfix configuration can be stored in /config/postconf and /config/postconf.d/*
+  + These files contain arguments to the postconf command
+  + These files are processed when the container starts and when the are created or modified
+  + The files in /config/postconf.d are not processed in a particular order
++ Aliases are stored in /config/aliases
+  + If this file does not exists the default postfix file is copied to it
+  + When this file is updated, *newaliases* is run
 
 ## TODO
 
 + [ ] Set up DKIM
-+ [ ] Logging is to stdout, should it be to a log file with rotation?
-+ [ ] How to maintain aliases and other database files?
++ [ ] Read and process generics and virtual?
 ...
