@@ -1,4 +1,4 @@
-From lsiobase/alpine:3.16
+From lsiobase/alpine:3.20
 
 ENV \
 	USE_SASL= \
