@@ -87,8 +87,8 @@ postconf -e maillog_file=/dev/stdout
 
 # Configure aliases
 test -f /config/aliases || cp -p ${MAIL_CONFIG}/aliases /config/aliases
-postconf alias_maps=hash:/config/aliases
-postalias lmdb:${MAIL_CONFIG}/aliases
+postconf alias_maps=internal:/config/aliases
+# postalias lmdb:${MAIL_CONFIG}/aliases
 
 test -n "${BOUNCE_QUEUE_LIFETIME}" && postconf -e bounce_queue_lifetime="${BOUNCE_QUEUE_LIFETIME}"
 
