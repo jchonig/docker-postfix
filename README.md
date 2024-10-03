@@ -54,13 +54,14 @@ volumes:
 ## Environment Variables (-e)
 
 | Env                            | Function                                                     |
-| ---                            | --------                                                     |
+|--------------------------------|--------------------------------------------------------------|
 | PUID=1000                      | for UserID - see below for explanation                       |
 | PGID=1000                      | for GroupID - see below for explanation                      |
 | USE_SASL=yes                   | Use sasl for user authentication                             |
 | USE_SASLAUTHD=yes              | Use saslauthd                                                |
 | USE_DKIM=yes                   | Not yet implemented                                          |
-| USE_TLS=yes                    | Enable TLS for incoming connectinos                          |
+| USE_TLS=yes                    | Enable STARTTLS for incoming connections on port 25          |
+| USE_SMTPS=yes                  | Enable TLS wrapper on port 465                               |
 | MYHOSTNAME=example.com         | Configure postfix myhostname parameter                       |
 | MYORIGIN=example.com           | Configure postfix myorigin parameter                         |
 | MYDESTINATION=                 | Configure postfix mydestination parameter                    |

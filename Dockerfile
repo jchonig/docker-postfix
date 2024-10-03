@@ -28,5 +28,6 @@ RUN \
         ca-certificates
 
 EXPOSE 25
+EXPOSE 465
 
 VOLUME /config

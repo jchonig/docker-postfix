@@ -10,6 +10,7 @@ print_vars () {
     echo "    PUID=${PUID}"
     echo "    PGID=${PGID}"
     echo "    USE_TLS=${USE_TLS}"
+    echo "    USE_SMTPS=${USE_SMTPS}"
     echo "    MYHOSTNAME=${MYHOSTNAME}"
     echo "    MYORIGIN=${MYORIGIN}"
     echo "    MYDESTINATION=${MYDESTINATION}"
@@ -78,6 +79,16 @@ case ${USE_TLS} in
 	else
 	    postconf -e smtpd_tls_security_level=encrypt
 	fi
+	case ${USE_SMTPS} in
+	    yes|true)
+		postconf -M submissions/inet="submissions inet n - - - - smtpd"
+		postconf -P "submissions/inet/smtpd_tls_wrappermode=yes"
+		postconf -P "submissions/inet/smtpd_sasl_auth_enable=yes"
+		postconf -P "submissions/inet/smtpd_client_restrictions=permit_sasl_authenticated,reject"
+		postconf -P "submissions/inet/smtpd_relay_restrictions=permit_sasl_authenticated,reject"
+		postconf -P "submissions/inet/milter_macro_daemon_name=ORIGINATING"	
+		;;
+	esac
     ;;
 esac
 
