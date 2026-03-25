@@ -22,7 +22,7 @@ inotifywait -m -r /config -e attrib,modify,move,create,delete | \
 	    /config/postconf|/config/postconf.d/*)
 		test -f "${event_path}" && process_postconf "${event_path}"
 		;;
-	    /config/sasl.users)
+/config/sasl.users)
 		case ${USE_SASL} in
 		    yes|true)
 			update_sasldb_users
@@ -32,7 +32,7 @@ inotifywait -m -r /config -e attrib,modify,move,create,delete | \
 			;;
 		esac
 		;;
-	    /config/server.cert|/config/server.key)
+/config/server.cert|/config/server.key)
 		case ${USE_TLS} in
 		    yes|true)
 			postfix reload

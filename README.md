@@ -68,6 +68,7 @@ volumes:
 | MASQUERADE_DOMAINS=example.com | A comma seperated list of domains to masquerade              |
 | SMTPD_TLS_SECURITY_LEVEL=may   | Configure the level of TLS required on incomming connections |
 | BOUNCE_QUEUE_LIFETIME=1d       | Configure the postfix bounce queue lifetime                  |
+| RELAYHOST=[host]:port          | Outbound relay host (e.g. `[smtp-relay.gmail.com]:587`)      |
 
 ## Volume Mappings (-v)
 
@@ -81,6 +82,11 @@ volumes:
 
 + When USE_TLS is enabled, /config/server.cert and /config/server.key should exist
   + When these files are updated, postfix is reloaded automatically
++ When `RELAYHOST` is set, outbound TLS (`smtp_tls_security_level=encrypt`) is enabled automatically
+  + Relay credentials are read from `/config/sasl.passwd`, which uses standard postfix `sasl_passwd` format: one entry per line of `relayhost user:password`
+  + Example: `[smtp-relay.gmail.com]:587 you@yourdomain.com:app-password`
+  + `/config/sasl.passwd` is read directly by postfix on demand — no rebuild step needed when the file changes
+  + For Gmail Workspace: set `RELAYHOST=[smtp-relay.gmail.com]:587` and generate an [App Password](https://support.google.com/accounts/answer/185833) for the account; enable the SMTP relay service in Google Workspace Admin → Apps → Gmail → Routing
 + When using SASL, /config/sasl.users should should have one entry per line of user and password seperated by a space
   + WHen this file is updated, *update_sasldb_users* is run automatically
 + Additonal postfix configuration can be stored in /config/postconf and /config/postconf.d/*

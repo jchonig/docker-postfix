@@ -17,6 +17,7 @@ print_vars () {
     echo "    BOUNCE_QUEUE_LIFETIME=${BOUNCE_QUEUE_LIFETIME}"
     echo "    MASQUERADE_DOMAINS=${MASQUERADE_DOMAINS}"
     echo "    SMTPD_TLS_SECURITY_LEVEL=${SMTPD_TLS_SECURITY_LEVEL}"
+    echo "    RELAYHOST=${RELAYHOST}"
     echo "    TZ=${TZ}"
 }
 
@@ -28,7 +29,7 @@ if [ -f "/config/env" ]; then
   print_vars "After sourcing /config/env"
 fi
 
-# 
+#
 MAIL_CONFIG=/etc/postfix
 SPOOL_DIR=/data/spool
 
@@ -68,7 +69,7 @@ if [ -n "${MASQUERADE_DOMAINS}" ]; then
     postconf -e masquerade_domains="${MASQUERADE_DOMAINS}"
     postconf -e masquerade_classes=envelope_sender,envelope_recipient,header_sender,header_recipient
 fi
-	       
+
 case ${USE_TLS} in
     yes|true)
 	postconf -e smtpd_tls_CAfile=/etc/ssl/certs/ca-certificates.crt
@@ -86,7 +87,7 @@ case ${USE_TLS} in
 		postconf -P "submissions/inet/smtpd_sasl_auth_enable=yes"
 		postconf -P "submissions/inet/smtpd_client_restrictions=permit_sasl_authenticated,reject"
 		postconf -P "submissions/inet/smtpd_relay_restrictions=permit_sasl_authenticated,reject"
-		postconf -P "submissions/inet/milter_macro_daemon_name=ORIGINATING"	
+		postconf -P "submissions/inet/milter_macro_daemon_name=ORIGINATING"
 		;;
 	esac
     ;;
@@ -102,6 +103,13 @@ postconf alias_maps=internal:/config/aliases
 # postalias lmdb:${MAIL_CONFIG}/aliases
 
 test -n "${BOUNCE_QUEUE_LIFETIME}" && postconf -e bounce_queue_lifetime="${BOUNCE_QUEUE_LIFETIME}"
+
+# Configure outbound relay host (credentials handled in init-sasl)
+if [ -n "${RELAYHOST}" ]; then
+    postconf -e relayhost="${RELAYHOST}"
+    postconf -e smtp_tls_security_level=encrypt
+    postconf -e smtp_tls_CAfile=/etc/ssl/certs/ca-certificates.crt
+fi
 
 process_postconf () {
     local file=$1

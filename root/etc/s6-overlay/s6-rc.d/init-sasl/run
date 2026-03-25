@@ -9,6 +9,7 @@ print_vars () {
     echo "Environment${title}:"
     echo "    USE_SASL=${USE_SASL}"
     echo "    USE_SASLAUTHD=${USE_SASLAUTHD}"
+    echo "    RELAYHOST=${RELAYHOST}"
     echo "    TZ=${TZ}"
 }
 
@@ -47,5 +48,16 @@ EOF
 	esac
 	;;
 esac
+
+# Configure outbound relay SASL credentials from /config/sasl.passwd
+if [ -n "${RELAYHOST}" ]; then
+    if [ -f /config/sasl.passwd ]; then
+	postconf -e smtp_sasl_auth_enable=yes
+	postconf -e smtp_sasl_password_maps=texthash:/config/sasl.passwd
+	postconf -e smtp_sasl_security_options=noanonymous
+    else
+	echo "RELAYHOST set but /config/sasl.passwd not found; relay will be unauthenticated"
+    fi
+fi
 
 echo "Finished init-saslauthd"
