@@ -68,6 +68,7 @@ volumes:
 | MASQUERADE_DOMAINS=example.com | A comma seperated list of domains to masquerade              |
 | SMTPD_TLS_SECURITY_LEVEL=may   | Configure the level of TLS required on incomming connections |
 | BOUNCE_QUEUE_LIFETIME=1d       | Configure the postfix bounce queue lifetime                  |
+| INET_PROTOCOLS=all             | Set postfix inet_protocols (e.g. `all`, `ipv4`, `ipv6`)      |
 | RELAYHOST=[host]:port          | Outbound relay host (e.g. `[smtp-relay.gmail.com]:587`)      |
 
 ## Volume Mappings (-v)

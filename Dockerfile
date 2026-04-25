@@ -11,6 +11,7 @@ ENV \
         MASQUERADE_DOMAINS= \
         SMTPD_TLS_SECURITY_LEVEL= \
 	BOUNCE_QUEUE_LIFETIME= \
+	INET_PROTOCOLS= \
 	RELAYHOST=
 
 # Add configuration files

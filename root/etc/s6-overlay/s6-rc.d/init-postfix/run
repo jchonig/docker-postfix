@@ -15,6 +15,7 @@ print_vars () {
     echo "    MYORIGIN=${MYORIGIN}"
     echo "    MYDESTINATION=${MYDESTINATION}"
     echo "    BOUNCE_QUEUE_LIFETIME=${BOUNCE_QUEUE_LIFETIME}"
+    echo "    INET_PROTOCOLS=${INET_PROTOCOLS}"
     echo "    MASQUERADE_DOMAINS=${MASQUERADE_DOMAINS}"
     echo "    SMTPD_TLS_SECURITY_LEVEL=${SMTPD_TLS_SECURITY_LEVEL}"
     echo "    RELAYHOST=${RELAYHOST}"
@@ -103,6 +104,7 @@ postconf alias_maps=internal:/config/aliases
 # postalias lmdb:${MAIL_CONFIG}/aliases
 
 test -n "${BOUNCE_QUEUE_LIFETIME}" && postconf -e bounce_queue_lifetime="${BOUNCE_QUEUE_LIFETIME}"
+test -n "${INET_PROTOCOLS}" && postconf -e inet_protocols="${INET_PROTOCOLS}"
 
 # Configure outbound relay host (credentials handled in init-sasl)
 if [ -n "${RELAYHOST}" ]; then
