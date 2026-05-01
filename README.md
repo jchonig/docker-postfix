@@ -2,6 +2,8 @@
 A container running postfix intended to be used as an internal mail
 relay to the outside world.
 
+Image hosted at: `ghcr.io/ghcr.io/jchonig/postfix`
+
 Optionally authenticate incoming connections with SASL
 
 # Usage
@@ -16,7 +18,7 @@ docker create \
   -v </path/to/appdata/config>:/config \
   -p 25:25 \
   --restart unless-stopped \
-  jchonig/postfix
+  ghcr.io/jchonig/postfix
 ```
 
 ### docker-compose
@@ -28,7 +30,7 @@ Compatible with docker-compose v2 schemas.
 version: "2"
 services:
   postfix:
-    image: jchonig/postfix
+    image: ghcr.io/jchonig/postfix
     environment:
       - PUID=1000
       - PGID=1000
