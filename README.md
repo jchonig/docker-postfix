@@ -2,7 +2,7 @@
 A container running postfix intended to be used as an internal mail
 relay to the outside world.
 
-Image hosted at: `ghcr.io/ghcr.io/jchonig/postfix`
+Image hosted at: `ghcr.io/jchonig/postfix`
 
 Optionally authenticate incoming connections with SASL
 
