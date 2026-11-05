@@ -1,4 +1,5 @@
 # docker-postfix
+
 A container running postfix intended to be used as an internal mail
 relay to the outside world.
 
@@ -6,13 +7,13 @@ Image hosted at: `ghcr.io/jchonig/postfix`
 
 Optionally authenticate incoming connections with SASL
 
-# Usage
+## Usage
 
-## docker
+### docker
 
-```
+```sh
 docker create \
-  --name=posfix \
+  --name=postfix \
   -e PUID=1000 \
   -e PGID=1000 \
   -v </path/to/appdata/config>:/config \
@@ -25,7 +26,7 @@ docker create \
 
 Compatible with docker-compose v2 schemas.
 
-```
+```yaml
 ---
 version: "2"
 services:
@@ -36,7 +37,7 @@ services:
       - PGID=1000
     volumes:
       - </path/to/appdata/config>:/config
-	  - data:/data
+      - data:/data
     port:
       - 25
     restart: unless-stopped
@@ -45,64 +46,84 @@ volumes:
   data:
 ```
 
-# Parameters
+## Parameters
 
-## Ports (-p)
+### Ports (-p)
 
-| Volume | Function               |
-| ------ | --------               |
-| 25     | The incoming SMTP port |
+| Port | Function               |
+| ---- | ---------------------- |
+| 25   | The incoming SMTP port |
 
-## Environment Variables (-e)
+### Environment Variables (-e)
 
-| Env                            | Function                                                     |
-|--------------------------------|--------------------------------------------------------------|
-| PUID=1000                      | for UserID - see below for explanation                       |
-| PGID=1000                      | for GroupID - see below for explanation                      |
-| USE_SASL=yes                   | Use sasl for user authentication                             |
-| USE_SASLAUTHD=yes              | Use saslauthd                                                |
-| USE_DKIM=yes                   | Not yet implemented                                          |
-| USE_TLS=yes                    | Enable STARTTLS for incoming connections on port 25          |
-| USE_SMTPS=yes                  | Enable TLS wrapper on port 465                               |
-| MYHOSTNAME=example.com         | Configure postfix myhostname parameter                       |
-| MYORIGIN=example.com           | Configure postfix myorigin parameter                         |
-| MYDESTINATION=                 | Configure postfix mydestination parameter                    |
-| MASQUERADE_DOMAINS=example.com | A comma seperated list of domains to masquerade              |
-| SMTPD_TLS_SECURITY_LEVEL=may   | Configure the level of TLS required on incomming connections |
-| BOUNCE_QUEUE_LIFETIME=1d       | Configure the postfix bounce queue lifetime                  |
-| INET_PROTOCOLS=all             | Set postfix inet_protocols (e.g. `all`, `ipv4`, `ipv6`)      |
-| RELAYHOST=[host]:port          | Outbound relay host (e.g. `[smtp-relay.gmail.com]:587`)      |
+- `PUID=1000`: for UserID
+- `PGID=1000`: for GroupID
+- `USE_SASL=yes`: use SASL for user authentication
+- `USE_SASLAUTHD=yes`: use saslauthd
+- `USE_DKIM=yes`: not yet implemented
+- `USE_TLS=yes`: enable STARTTLS for incoming connections on port 25
+- `USE_SMTPS=yes`: enable the TLS wrapper on port 465
+- `MYHOSTNAME=example.com`: postfix `myhostname`
+- `MYORIGIN=example.com`: postfix `myorigin`
+- `MYDESTINATION=`: postfix `mydestination`
+- `MASQUERADE_DOMAINS=example.com`: a comma separated list of domains
+  to masquerade
+- `SMTPD_TLS_SECURITY_LEVEL=may`: the level of TLS required on incoming
+  connections
+- `BOUNCE_QUEUE_LIFETIME=1d`: postfix `bounce_queue_lifetime`
+- `INET_PROTOCOLS=all`: postfix `inet_protocols` (`all`, `ipv4` or
+  `ipv6`)
+- `RELAYHOST=[host]:port`: outbound relay host, for example
+  `[smtp-relay.gmail.com]:587`
 
-## Volume Mappings (-v)
+### Volume Mappings (-v)
 
 | Volume  | Function                           |
-|---------|------------------------------------|
+| ------- | ---------------------------------- |
 | /data   | Persistent data (i.e. /data/spool) |
 | /config | All the config files reside here   |
 
+## Application Setup
 
-# Application Setup
-
-+ When USE_TLS is enabled, /config/server.cert and /config/server.key should exist
-  + When these files are updated, postfix is reloaded automatically
-+ When `RELAYHOST` is set, outbound TLS (`smtp_tls_security_level=encrypt`) is enabled automatically
-  + Relay credentials are read from `/config/sasl.passwd`, which uses standard postfix `sasl_passwd` format: one entry per line of `relayhost user:password`
-  + Example: `[smtp-relay.gmail.com]:587 you@yourdomain.com:app-password`
-  + `/config/sasl.passwd` is read directly by postfix on demand — no rebuild step needed when the file changes
-  + For Gmail Workspace: set `RELAYHOST=[smtp-relay.gmail.com]:587` and generate an [App Password](https://support.google.com/accounts/answer/185833) for the account; enable the SMTP relay service in Google Workspace Admin → Apps → Gmail → Routing
-+ When using SASL, /config/sasl.users should should have one entry per line of user and password seperated by a space
-  + WHen this file is updated, *update_sasldb_users* is run automatically
-+ Additonal postfix configuration can be stored in /config/postconf and /config/postconf.d/*
-  + These files contain arguments to the postconf command
-  + These files are processed when the container starts
-  + These files are reparsed automatically when they are modified or created
-  + The files in /config/postconf.d are not processed in a particular order
-+ Aliases are stored in /config/aliases
-  + If this file does not exists the default postfix file is copied to it
-  + When this file is updated, *newaliases* is run
+- When `USE_TLS` is enabled, `/config/server.cert` and
+  `/config/server.key` should exist
+  - When these files are updated, postfix is reloaded automatically
+  - Optionally, `/config/server-rsa.cert` and `/config/server-rsa.key`
+    add an RSA certificate alongside an ECDSA `server.cert`, for clients
+    that only support RSA cipher suites (such as some printers); postfix
+    picks the certificate that matches the client
+  - The RSA pair is only used when both files exist and the key matches
+    the certificate; it is picked up or dropped automatically when the
+    files change
+- When `RELAYHOST` is set, outbound TLS (`smtp_tls_security_level=encrypt`)
+  is enabled automatically
+  - Relay credentials are read from `/config/sasl.passwd`, which uses
+    standard postfix `sasl_passwd` format: one entry per line of
+    `relayhost user:password`
+  - Example: `[smtp-relay.gmail.com]:587 you@yourdomain.com:app-password`
+  - `/config/sasl.passwd` is read directly by postfix on demand — no
+    rebuild step needed when the file changes
+  - For Gmail Workspace: set `RELAYHOST=[smtp-relay.gmail.com]:587` and
+    generate an
+    [App Password](https://support.google.com/accounts/answer/185833)
+    for the account; enable the SMTP relay service in Google Workspace
+    Admin → Apps → Gmail → Routing
+- When using SASL, `/config/sasl.users` should have one entry per line of
+  user and password separated by a space
+  - When this file is updated, `update_sasldb_users` is run automatically
+- Additional postfix configuration can be stored in `/config/postconf`
+  and `/config/postconf.d/*`
+  - These files contain arguments to the postconf command
+  - These files are processed when the container starts
+  - These files are reparsed automatically when they are modified or
+    created
+  - The files in `/config/postconf.d` are not processed in a particular
+    order
+- Aliases are stored in `/config/aliases`
+  - If this file does not exist the default postfix file is copied to it
+  - When this file is updated, `newaliases` is run
 
 ## TODO
 
-+ [ ] Set up DKIM
-+ [ ] Read and process generics and virtual?
-...
+- [ ] Set up DKIM
+- [ ] Read and process generics and virtual?

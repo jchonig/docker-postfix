@@ -32,9 +32,10 @@ inotifywait -m -r /config -e attrib,modify,move,create,delete | \
 			;;
 		esac
 		;;
-/config/server.cert|/config/server.key)
+/config/server.cert|/config/server.key|/config/server-rsa.cert|/config/server-rsa.key)
 		case ${USE_TLS} in
 		    yes|true)
+			update_tls_files
 			postfix reload
 			;;
 		    *)

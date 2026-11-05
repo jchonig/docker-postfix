@@ -1,0 +1,34 @@
+#!/bin/sh
+# Point postfix at the TLS files in /config. server.cert and server.key
+# are required. server-rsa.cert and server-rsa.key are an optional second
+# pair, for clients that only support RSA when server.cert is ECDSA; they
+# are only used when both exist and the key matches the certificate.
+
+progname=${0##*/}
+
+verbose () {
+    echo "${progname}: ${*}"
+}
+
+rsa_cert=/config/server-rsa.cert
+rsa_key=/config/server-rsa.key
+
+if [ -f "${rsa_cert}" ] && [ -f "${rsa_key}" ]; then
+    cert_pubkey=$(openssl x509 -in "${rsa_cert}" -noout -pubkey 2>/dev/null)
+    key_pubkey=$(openssl pkey -in "${rsa_key}" -pubout 2>/dev/null)
+    if [ -n "${cert_pubkey}" ] && [ "${cert_pubkey}" = "${key_pubkey}" ]; then
+	verbose "Using server.cert and server-rsa.cert"
+	# smtpd_tls_chain_files replaces the legacy cert and key settings,
+	# and postfix warns on every connection if both are set
+	postconf -X smtpd_tls_cert_file smtpd_tls_key_file
+	postconf -e smtpd_tls_chain_files="/config/server.key, /config/server.cert, ${rsa_key}, ${rsa_cert}"
+	exit 0
+    fi
+    verbose "${rsa_key} does not match ${rsa_cert}, not using them"
+fi
+
+verbose "Using server.cert"
+postconf -X smtpd_tls_chain_files
+postconf -e smtpd_tls_cert_file=/config/server.cert
+postconf -e smtpd_tls_key_file=/config/server.key
+exit 0
