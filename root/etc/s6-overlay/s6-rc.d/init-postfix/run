@@ -74,8 +74,7 @@ fi
 case ${USE_TLS} in
     yes|true)
 	postconf -e smtpd_tls_CAfile=/etc/ssl/certs/ca-certificates.crt
-	postconf -e smtpd_tls_cert_file=/config/server.cert
-	postconf -e smtpd_tls_key_file=/config/server.key
+	update_tls_files
 	if [ -n "${SMTPD_TLS_SECURITY_LEVEL}" ]; then
 	    postconf -e smtpd_tls_security_level=${SMTPD_TLS_SECURITY_LEVEL}
 	else
