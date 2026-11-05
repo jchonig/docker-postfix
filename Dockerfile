@@ -23,6 +23,7 @@ RUN \
     apk add --no-cache postfix \
         postfix-doc \
         cyrus-sasl \
+        cyrus-sasl-login \
         rsync \
         opendkim \
         opendkim-utils \
